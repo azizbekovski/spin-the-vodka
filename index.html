@@ -14,33 +14,52 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
         }
-        .lobby {
-            text-align: center;
+        #lobby {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
         }
-        .button {
+        #bottle {
+            width: 150px;
+            height: 300px;
+            background: url('path_to_vodka_bottle_image.png') no-repeat center / contain;
+            margin: 20px;
+        }
+        #spinButton {
             padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
+            font-size: 16px;
             cursor: pointer;
         }
-        .button:hover {
-            background-color: #0056b3;
-        }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="lobby">
-        <h1>Welcome to the Spinning Vodka Bottle Game!</h1>
-        <p>Gather your friends and get ready to spin!</p>
-        <button class="button" onclick="startGame()">Start Game</button>
+    <div id="lobby">
+        <h1>Spinning Vodka Bottle Game</h1>
+        <button id="spinButton">Spin the Bottle!</button>
     </div>
+    <div id="bottle" class="hidden"></div>
     <script>
-        function startGame() {
-            // Implementation for starting the game goes here
-            alert('Game starting...');
-        }
+        const spinButton = document.getElementById('spinButton');
+        const bottle = document.getElementById('bottle');
+        let isSpinning = false;
+
+        spinButton.addEventListener('click', function() {
+            if (!isSpinning) {
+                isSpinning = true;
+                bottle.classList.remove('hidden');
+                const spinDuration = Math.random() * 5000 + 3000; // Spin between 3s and 8s
+                bottle.style.transition = `transform ${spinDuration}ms ease-out`;
+                const randomAngle = Math.random() * 360;
+                bottle.style.transform = `rotate(${randomAngle}deg)`;
+                setTimeout(() => {
+                    alert('Bottle stopped!');
+                    isSpinning = false;
+                }, spinDuration);
+            }
+        });
     </script>
 </body>
 </html>
