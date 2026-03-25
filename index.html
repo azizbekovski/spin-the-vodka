@@ -2,88 +2,138 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<title>Vodka Spin Lobby</title>
+<title>Online Vodka Spin</title>
+
 <style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #1e1e2f;
-        color: white;
-        text-align: center;
-    }
+body {
+    background: #000;
+    color: #00ff88;
+    text-align: center;
+    font-family: Arial;
+}
 
-    .lobby {
-        padding: 20px;
-    }
+h1 {
+    text-shadow: 0 0 10px #00ff88;
+}
 
-    .bear {
-        font-size: 80px;
-        margin: 20px;
-    }
+.arena {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin: 20px auto;
+    border: 2px solid #00ff88;
+    border-radius: 20px;
+    box-shadow: 0 0 20px #00ff88;
+}
 
-    .bottle-container {
-        margin-top: 40px;
-    }
+.player {
+    position: absolute;
+    width: 100px;
+    font-weight: bold;
+}
 
-    .bottle {
-        width: 80px;
-        height: 200px;
-        background: linear-gradient(to bottom, #4fc3f7, #0288d1);
-        border-radius: 20px;
-        margin: 0 auto;
-        position: relative;
-        transition: transform 2s ease-out;
-    }
+.top-left { top: 10px; left: 10px; }
+.top-right { top: 10px; right: 10px; }
+.bottom-left { bottom: 10px; left: 10px; }
+.bottom-right { bottom: 10px; right: 10px; }
 
-    .bottle::before {
-        content: "";
-        position: absolute;
-        top: -30px;
-        left: 25px;
-        width: 30px;
-        height: 30px;
-        background: #ccc;
-        border-radius: 5px;
-    }
+.bottle {
+    width: 60px;
+    height: 150px;
+    background: linear-gradient(#00ff88, #004422);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+    transition: transform 2s;
+    border-radius: 20px;
+    box-shadow: 0 0 15px #00ff88;
+}
 
-    button {
-        margin-top: 30px;
-        padding: 10px 20px;
-        font-size: 18px;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        background: #ff5252;
-        color: white;
-    }
+input, button {
+    margin: 5px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+}
 
-    button:hover {
-        background: #ff1744;
-    }
+button {
+    background: #00ff88;
+    color: black;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #00cc66;
+}
 </style>
 </head>
+
 <body>
 
-<div class="lobby">
-    <h1>🍸 Vodka Lobby</h1>
-    <div class="bear">🐻🇷🇺</div>
-    <p>Välkommen till lobbyn!</p>
+<h1>🐻 Vodka Spin ONLINE</h1>
 
-    <div class="bottle-container">
-        <div id="bottle" class="bottle"></div>
-        <button onclick="spinBottle()">Snurra flaskan</button>
-    </div>
+<input id="name" placeholder="Ditt namn">
+<button onclick="join()">Gå med</button>
+
+<div class="arena">
+    <div id="p0" class="player top-left"></div>
+    <div id="p1" class="player top-right"></div>
+    <div id="p2" class="player bottom-left"></div>
+    <div id="p3" class="player bottom-right"></div>
+
+    <div id="bottle" class="bottle"></div>
 </div>
 
+<button onclick="spin()">Snurra</button>
+
+<!-- 🔊 Ljud -->
+<audio id="winSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+
 <script>
-function spinBottle() {
-    const bottle = document.getElementById("bottle");
+const ws = new WebSocket("ws://localhost:3000");
 
-    // slumpmässig rotation (minst 2 varv)
-    const randomDeg = Math.floor(Math.random() * 360) + 720;
+let players = [];
 
-    bottle.style.transform = "rotate(" + randomDeg + "deg)";
+function join() {
+    const name = document.getElementById("name").value;
+    ws.send(JSON.stringify({ type: "join", name }));
 }
+
+function spin() {
+    ws.send(JSON.stringify({ type: "spin" }));
+}
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.type === "players") {
+        players = data.players;
+
+        for (let i = 0; i < 4; i++) {
+            document.getElementById("p" + i).innerText = players[i] || "";
+        }
+    }
+
+    if (data.type === "spin") {
+        const angles = [225, 315, 135, 45];
+        const deg = 720 + angles[data.index];
+
+        document.getElementById("bottle").style.transform =
+            "translate(-50%, -50%) rotate(" + deg + "deg)";
+
+        setTimeout(() => {
+            const name = players[data.index] || "Ingen";
+
+            // 🔊 spela ljud
+            document.getElementById("winSound").play();
+
+            alert("🎯 Vald: " + name);
+        }, 2000);
+    }
+};
 </script>
 
 </body>
