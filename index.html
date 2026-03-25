@@ -2,6 +2,203 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
+<title>Vodka Spin Deluxe</title>
+
+<style>
+body {
+    background: #000;
+    color: #00ff88;
+    font-family: Arial;
+    text-align: center;
+}
+
+.arena {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin: 20px auto;
+    border: 2px solid #00ff88;
+    border-radius: 20px;
+    box-shadow: 0 0 20px #00ff88;
+}
+
+.player {
+    position: absolute;
+    width: 100px;
+}
+
+.highlight {
+    color: white;
+    text-shadow: 0 0 20px #00ff88;
+}
+
+.top-left { top: 10px; left: 10px; }
+.top-right { top: 10px; right: 10px; }
+.bottom-left { bottom: 10px; left: 10px; }
+.bottom-right { bottom: 10px; right: 10px; }
+
+/* 🍾 FLASKA + PEKARE */
+.bottle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+    transform: translate(-50%, -50%) rotate(0deg);
+    transition: transform 2s ease-out;
+}
+
+/* kropp */
+.bottle-body {
+    width: 40px;
+    height: 120px;
+    background: linear-gradient(#00ff88, #003322);
+    border-radius: 20px;
+    margin: auto;
+}
+
+/* spets/pekare */
+.pointer {
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 40px solid #00ff88;
+    margin: auto;
+}
+
+/* chat */
+.chat {
+    width: 300px;
+    margin: 20px auto;
+    border: 1px solid #00ff88;
+    padding: 10px;
+}
+
+#messages {
+    height: 100px;
+    overflow-y: auto;
+    text-align: left;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🐻 Vodka Spin Deluxe</h1>
+
+<div>
+    <input id="p1" placeholder="Spelare 1">
+    <input id="p2" placeholder="Spelare 2"><br>
+    <input id="p3" placeholder="Spelare 3">
+    <input id="p4" placeholder="Spelare 4"><br>
+    <button onclick="setNames()">Sätt namn</button>
+</div>
+
+<div class="arena">
+    <div id="player0" class="player top-left"></div>
+    <div id="player1" class="player top-right"></div>
+    <div id="player2" class="player bottom-left"></div>
+    <div id="player3" class="player bottom-right"></div>
+
+    <div id="bottle" class="bottle">
+        <div class="pointer"></div>
+        <div class="bottle-body"></div>
+    </div>
+</div>
+
+<button onclick="spinBottle()">Snurra flaskan</button>
+
+<!-- 💬 CHAT -->
+<div class="chat">
+    <div id="messages"></div>
+    <input id="chatInput" placeholder="Skriv meddelande">
+    <button onclick="sendMessage()">Skicka</button>
+</div>
+
+<script>
+let players = ["", "", "", ""];
+
+function setNames() {
+    players[0] = p1.value;
+    players[1] = p2.value;
+    players[2] = p3.value;
+    players[3] = p4.value;
+
+    for (let i = 0; i < 4; i++) {
+        document.getElementById("player" + i).innerText = players[i];
+    }
+}
+
+/* 🔊 Ljud via Web Audio (funkar alltid) */
+function playSound() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+
+    osc.connect(ctx.destination);
+    osc.start();
+
+    setTimeout(() => osc.stop(), 200);
+}
+
+function spinBottle() {
+    const bottle = document.getElementById("bottle");
+
+    // ta bort highlight
+    for (let i = 0; i < 4; i++) {
+        document.getElementById("player" + i).classList.remove("highlight");
+    }
+
+    const index = Math.floor(Math.random() * 4);
+
+    // FIXADE vinklar (matchar hörn exakt)
+    const angles = [
+        225, // top-left
+        315, // top-right
+        135, // bottom-left
+        45   // bottom-right
+    ];
+
+    const deg = 720 + angles[index];
+
+    bottle.style.transform =
+        "translate(-50%, -50%) rotate(" + deg + "deg)";
+
+    setTimeout(() => {
+        document.getElementById("player" + index).classList.add("highlight");
+
+        playSound(); // 🔊 ljud
+
+        alert("🎯 Vald: " + (players[index] || "Ingen"));
+    }, 2000);
+}
+
+/* 💬 CHAT (lokal) */
+function sendMessage() {
+    const input = document.getElementById("chatInput");
+    const msgBox = document.getElementById("messages");
+
+    if (input.value.trim() === "") return;
+
+    const msg = document.createElement("div");
+    msg.textContent = input.value;
+
+    msgBox.appendChild(msg);
+    msgBox.scrollTop = msgBox.scrollHeight;
+
+    input.value = "";
+}
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
 <title>Vodka Spin</title>
 
 <style>
