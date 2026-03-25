@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<title>Online Vodka Spin</title>
+<title>Vodka Spin</title>
 
 <style>
 body {
@@ -30,6 +30,12 @@ h1 {
     position: absolute;
     width: 100px;
     font-weight: bold;
+    transition: 0.3s;
+}
+
+.highlight {
+    color: #fff;
+    text-shadow: 0 0 15px #00ff88, 0 0 30px #00ff88;
 }
 
 .top-left { top: 10px; left: 10px; }
@@ -46,7 +52,7 @@ h1 {
     left: 50%;
     transform: translate(-50%, -50%);
     transform-origin: center;
-    transition: transform 2s;
+    transition: transform 2s ease-out;
     border-radius: 20px;
     box-shadow: 0 0 15px #00ff88;
 }
@@ -73,67 +79,70 @@ button:hover {
 
 <body>
 
-<h1>🐻 Vodka Spin ONLINE</h1>
+<h1>🐻 Vodka Spin</h1>
 
-<input id="name" placeholder="Ditt namn">
-<button onclick="join()">Gå med</button>
+<div>
+    <input id="p1" placeholder="Spelare 1">
+    <input id="p2" placeholder="Spelare 2"><br>
+    <input id="p3" placeholder="Spelare 3">
+    <input id="p4" placeholder="Spelare 4"><br>
+    <button onclick="setNames()">Sätt namn</button>
+</div>
 
 <div class="arena">
-    <div id="p0" class="player top-left"></div>
-    <div id="p1" class="player top-right"></div>
-    <div id="p2" class="player bottom-left"></div>
-    <div id="p3" class="player bottom-right"></div>
+    <div id="player0" class="player top-left"></div>
+    <div id="player1" class="player top-right"></div>
+    <div id="player2" class="player bottom-left"></div>
+    <div id="player3" class="player bottom-right"></div>
 
     <div id="bottle" class="bottle"></div>
 </div>
 
-<button onclick="spin()">Snurra</button>
+<button onclick="spinBottle()">Snurra flaskan</button>
 
 <!-- 🔊 Ljud -->
-<audio id="winSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+<audio id="sound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3"></audio>
 
 <script>
-const ws = new WebSocket("ws://localhost:3000");
+let players = ["", "", "", ""];
 
-let players = [];
+function setNames() {
+    players[0] = document.getElementById("p1").value;
+    players[1] = document.getElementById("p2").value;
+    players[2] = document.getElementById("p3").value;
+    players[3] = document.getElementById("p4").value;
 
-function join() {
-    const name = document.getElementById("name").value;
-    ws.send(JSON.stringify({ type: "join", name }));
+    for (let i = 0; i < 4; i++) {
+        document.getElementById("player" + i).innerText = players[i];
+    }
 }
 
-function spin() {
-    ws.send(JSON.stringify({ type: "spin" }));
+function spinBottle() {
+    const bottle = document.getElementById("bottle");
+
+    // ta bort highlight
+    for (let i = 0; i < 4; i++) {
+        document.getElementById("player" + i).classList.remove("highlight");
+    }
+
+    const index = Math.floor(Math.random() * 4);
+    const angles = [225, 315, 135, 45];
+
+    const deg = 720 + angles[index];
+
+    bottle.style.transform =
+        "translate(-50%, -50%) rotate(" + deg + "deg)";
+
+    setTimeout(() => {
+        // highlight vinnaren
+        document.getElementById("player" + index).classList.add("highlight");
+
+        // spela ljud
+        document.getElementById("sound").play();
+
+        alert("🎯 Vald: " + (players[index] || "Ingen"));
+    }, 2000);
 }
-
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-
-    if (data.type === "players") {
-        players = data.players;
-
-        for (let i = 0; i < 4; i++) {
-            document.getElementById("p" + i).innerText = players[i] || "";
-        }
-    }
-
-    if (data.type === "spin") {
-        const angles = [225, 315, 135, 45];
-        const deg = 720 + angles[data.index];
-
-        document.getElementById("bottle").style.transform =
-            "translate(-50%, -50%) rotate(" + deg + "deg)";
-
-        setTimeout(() => {
-            const name = players[data.index] || "Ingen";
-
-            // 🔊 spela ljud
-            document.getElementById("winSound").play();
-
-            alert("🎯 Vald: " + name);
-        }, 2000);
-    }
-};
 </script>
 
 </body>
