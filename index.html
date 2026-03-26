@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flaskspel med Case</title>
+<title>Flaskspel PRO</title>
+
 <style>
 body {
     display: flex;
@@ -18,15 +19,14 @@ body {
 #bottle {
     width: 100px;
     height: 200px;
-    background-color: #ffcc00;
+    background: #ffcc00;
     border-radius: 10px;
-    transition: transform 0.2s;
-    position: relative;
+    transition: 0.2s;
 }
 
 #score {
-    font-size: 24px;
     color: white;
+    font-size: 24px;
     margin: 10px;
 }
 
@@ -38,31 +38,35 @@ button {
     cursor: pointer;
 }
 
-#rewardImg {
-    position: absolute;
-    top: -150px;
-    width: 150px;
-    display: none;
+.shop {
+    margin-top: 20px;
+    background: rgba(255,255,255,0.2);
+    padding: 10px;
+    border-radius: 10px;
 }
 </style>
 </head>
+
 <body>
 
-<div id="bottle"></div>
+<div id="bottle" onclick="spinBottle()"></div>
 <div id="score">Poäng: 0</div>
 
-<div id="upgrades">
-    <button onclick="buyUpgrade(10,1)">+1 (10)</button>
-    <button onclick="buyUpgrade(20,5)">+5 (20)</button>
-    <button onclick="buyUpgrade(50,15)">+15 (50)</button>
-    <button onclick="buyUpgrade(100,25)">+25 (100)</button>
-    <button onclick="buyUpgrade(200,50,true)">+50 (200)</button>
+<div class="shop">
+<h3>🚀 Upgrades</h3>
+<button onclick="buyUpgrade(10,1)">+1 (10)</button>
+<button onclick="buyUpgrade(20,5)">+5 (20)</button>
+<button onclick="buyUpgrade(50,15)">+15 (50)</button>
 </div>
 
-<div id="lootbox">
-    <h3>🎁 Case</h3>
-    <button onclick="openCase(67000)">Öppna Case (67k)</button>
+<div class="shop">
+<h3>🎨 Skins Shop</h3>
+<button id="greenBtn" onclick="buySkin('green',15000)">Grön (15k)</button>
+<button id="pinkBtn" onclick="buySkin('pink',20000)">Rosa (20k)</button>
+<button id="blackBtn" onclick="buySkin('black',25000)">Svart (25k)</button>
 </div>
+
+<button onclick="saveGame()">💾 Spara</button>
 
 <script>
 let score = 0;
@@ -70,82 +74,119 @@ let spinSpeed = 1;
 let currentSkin = "yellow";
 let ownedSkins = ["yellow"];
 
-// Uppdatera poäng
-function updateScore() {
+// 🔊 Ljud
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playClickSound(){
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.frequency.value = 600;
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+}
+
+function updateScore(){
     document.getElementById("score").innerText = "Poäng: " + score;
 }
 
-// Köp uppgradering
-function buyUpgrade(cost, power, reward=false) {
-    if(score >= cost) {
+function spinBottle(){
+    playClickSound();
+    score += spinSpeed;
+    updateScore();
+
+    document.getElementById("bottle").style.transform =
+        "rotate(" + (Math.random()*360) + "deg)";
+}
+
+// 🚀 Upgrade
+function buyUpgrade(cost, power){
+    if(score >= cost){
         score -= cost;
         spinSpeed += power;
         updateScore();
-        if(reward) showReward();
-    } else {
-        alert("Inte tillräckligt med poäng!");
     }
 }
 
-// Belöningsbild för vanliga uppgraderingar
-function showReward() {
+// 🎨 Skin system
+function updateSkin(){
     const bottle = document.getElementById("bottle");
-    bottle.style.boxShadow = "0 0 20px gold";
-    setTimeout(()=>{ bottle.style.boxShadow = "none"; }, 2000);
+
+    bottle.style.boxShadow = "0 0 20px white";
+
+    if(currentSkin === "green"){
+        bottle.style.background = "green";
+        bottle.style.boxShadow = "0 0 20px green";
+    }
+    else if(currentSkin === "pink"){
+        bottle.style.background = "pink";
+        bottle.style.boxShadow = "0 0 20px pink";
+    }
+    else if(currentSkin === "black"){
+        bottle.style.background = "black";
+        bottle.style.boxShadow = "0 0 20px white";
+    }
+    else{
+        bottle.style.background = "#ffcc00";
+    }
+
+    updateButtons();
 }
 
-// 🎁 Lootbox
-function openCase(cost) {
-    if(score < cost) {
-        alert("Inte tillräckligt med poäng!");
+function updateButtons(){
+    const skins = ["green","pink","black"];
+
+    skins.forEach(skin => {
+        let btn = document.getElementById(skin+"Btn");
+
+        if(ownedSkins.includes(skin)){
+            if(currentSkin === skin){
+                btn.innerText = skin + " (Equipped)";
+            } else {
+                btn.innerText = skin + " (Owned)";
+            }
+        }
+    });
+}
+
+function buySkin(color, cost){
+    if(ownedSkins.includes(color)){
+        currentSkin = color;
+        updateSkin();
         return;
     }
 
-    score -= cost;
-    updateScore();
-
-    const skins = ["whiteGlow", "blue", "red"];
-    const reward = skins[Math.floor(Math.random() * skins.length)];
-
-    currentSkin = reward;
-    if(!ownedSkins.includes(reward)) ownedSkins.push(reward);
-
-    applySkin(reward);
-
-    alert("Du fick en " + reward + " flask-skin!");
-}
-
-// Applicera skin på flaskan
-function applySkin(skin) {
-    const bottle = document.getElementById("bottle");
-    bottle.style.boxShadow = "none";
-
-    if(skin === "whiteGlow") {
-        bottle.style.backgroundColor = "white";
-        bottle.style.boxShadow = "0 0 30px white";
-    } else if(skin === "blue") {
-        bottle.style.backgroundColor = "blue";
-    } else if(skin === "red") {
-        bottle.style.backgroundColor = "red";
+    if(score >= cost){
+        score -= cost;
+        ownedSkins.push(color);
+        currentSkin = color;
+        updateScore();
+        updateSkin();
     } else {
-        bottle.style.backgroundColor = "#ffcc00";
+        alert("Inte tillräckligt med poäng!");
     }
 }
 
-// Spara och ladda spelet
-function saveGame() {
+// 💾 Save / Load
+function saveGame(){
     localStorage.setItem("score", score);
     localStorage.setItem("speed", spinSpeed);
     localStorage.setItem("skin", currentSkin);
     localStorage.setItem("owned", JSON.stringify(ownedSkins));
-    alert("Spelet sparat!");
+    alert("Sparat!");
 }
 
-function loadGame() {
-    const s = localStorage.getItem("score");
-    const sp = localStorage.getItem("speed");
-    const sk = localStorage.getItem("skin");
-    const ow = localStorage.getItem("owned");
+function loadGame(){
+    let s = localStorage.getItem("score");
+    let sp = localStorage.getItem("speed");
+    let sk = localStorage.getItem("skin");
+    let ow = localStorage.getItem("owned");
 
     if(s) score = parseInt(s);
     if(sp) spinSpeed = parseInt(sp);
@@ -153,10 +194,11 @@ function loadGame() {
     if(ow) ownedSkins = JSON.parse(ow);
 
     updateScore();
-    applySkin(currentSkin);
+    updateSkin();
 }
 
 loadGame();
 </script>
+
 </body>
 </html>
