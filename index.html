@@ -36,14 +36,18 @@
     <div id="score">Poäng: 0</div>
 
     <div id="upgrades">
-        <button onclick="buyUpgrade()">Köp uppgradering (10)</button>
+        <button onclick="buyUpgrade1()">+1 (10)</button>
+        <button onclick="buyUpgrade2()">+5 (20)</button>
+        <button onclick="buyUpgrade3()">+15 (50)</button>
+        <button onclick="buyUpgrade4()">+25 (100)</button>
+        <button onclick="buyUpgrade5()">+50 (200)</button>
     </div>
 
     <script>
         let score = 0;
         let spinSpeed = 1;
 
-        // 🔊 Skapa ljud (Web Audio API)
+        // 🔊 Ljud
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playClickSound() {
@@ -54,7 +58,7 @@
             gainNode.connect(audioCtx.destination);
 
             oscillator.type = "square";
-            oscillator.frequency.value = 600; // tonhöjd
+            oscillator.frequency.value = 600;
 
             gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
@@ -63,24 +67,57 @@
             oscillator.stop(audioCtx.currentTime + 0.1);
         }
 
+        function updateScore() {
+            document.getElementById('score').innerText = "Poäng: " + score;
+        }
+
         function spinBottle() {
-            // 🔊 spela ljud
             playClickSound();
 
             score += spinSpeed;
-            document.getElementById('score').innerText = "Poäng: " + score;
+            updateScore();
 
             const bottle = document.getElementById('bottle');
             bottle.style.transform = "rotate(" + (Math.random() * 360) + "deg)";
         }
 
-        function buyUpgrade() {
+        function buyUpgrade1() {
             if (score >= 10) {
                 score -= 10;
                 spinSpeed += 1;
-                document.getElementById('score').innerText = "Poäng: " + score;
-            } else {
-                alert("Inte tillräckligt med poäng!");
+                updateScore();
+            }
+        }
+
+        function buyUpgrade2() {
+            if (score >= 20) {
+                score -= 20;
+                spinSpeed += 5;
+                updateScore();
+            }
+        }
+
+        function buyUpgrade3() {
+            if (score >= 50) {
+                score -= 50;
+                spinSpeed += 15;
+                updateScore();
+            }
+        }
+
+        function buyUpgrade4() {
+            if (score >= 100) {
+                score -= 100;
+                spinSpeed += 25;
+                updateScore();
+            }
+        }
+
+        function buyUpgrade5() {
+            if (score >= 200) {
+                score -= 200;
+                spinSpeed += 50;
+                updateScore();
             }
         }
     </script>
