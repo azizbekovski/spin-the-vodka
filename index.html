@@ -1,172 +1,204 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flaskspel</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flaskspel PRO</title>
 
-            /* 🎨 Bakgrund */
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-        }
+<style>
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: Arial;
+    background: linear-gradient(to right, #4facfe, #00f2fe);
+}
 
-        #bottle {
-            width: 100px;
-            height: 200px;
-            background-color: #ffcc00;
-            border-radius: 10px;
-            transition: transform 0.2s;
-        }
+#bottle {
+    width: 100px;
+    height: 200px;
+    background: #ffcc00;
+    border-radius: 10px;
+    transition: 0.2s;
+}
 
-        #score {
-            font-size: 24px;
-            margin-top: 10px;
-            color: white;
-        }
+#score {
+    color: white;
+    font-size: 24px;
+    margin: 10px;
+}
 
-        #upgrades {
-            margin-top: 20px;
-        }
+button {
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
-        button {
-            margin: 5px;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        #saveBtn {
-            background-color: green;
-            color: white;
-        }
-    </style>
+.shop {
+    margin-top: 20px;
+    background: rgba(255,255,255,0.2);
+    padding: 10px;
+    border-radius: 10px;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="bottle" onclick="spinBottle()"></div>
-    <div id="score">Poäng: 0</div>
+<div id="bottle" onclick="spinBottle()"></div>
+<div id="score">Poäng: 0</div>
 
-    <div id="upgrades">
-        <button onclick="buyUpgrade1()">+1 (10)</button>
-        <button onclick="buyUpgrade2()">+5 (20)</button>
-        <button onclick="buyUpgrade3()">+15 (50)</button>
-        <button onclick="buyUpgrade4()">+25 (100)</button>
-        <button onclick="buyUpgrade5()">+50 (200)</button>
-    </div>
+<div class="shop">
+<h3>🚀 Upgrades</h3>
+<button onclick="buyUpgrade(10,1)">+1 (10)</button>
+<button onclick="buyUpgrade(20,5)">+5 (20)</button>
+<button onclick="buyUpgrade(50,15)">+15 (50)</button>
+</div>
 
-    <!-- 💾 Spara knapp -->
-    <button id="saveBtn" onclick="saveGame()">💾 Spara spel</button>
+<div class="shop">
+<h3>🎨 Skins Shop</h3>
+<button id="greenBtn" onclick="buySkin('green',15000)">Grön (15k)</button>
+<button id="pinkBtn" onclick="buySkin('pink',20000)">Rosa (20k)</button>
+<button id="blackBtn" onclick="buySkin('black',25000)">Svart (25k)</button>
+</div>
 
-    <script>
-        let score = 0;
-        let spinSpeed = 1;
+<button onclick="saveGame()">💾 Spara</button>
 
-        // 🔊 Ljud
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+<script>
+let score = 0;
+let spinSpeed = 1;
+let currentSkin = "yellow";
+let ownedSkins = ["yellow"];
 
-        function playClickSound() {
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+// 🔊 Ljud
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+function playClickSound(){
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
 
-            oscillator.type = "square";
-            oscillator.frequency.value = 600;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
 
-            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.frequency.value = 600;
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
 
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.1);
-        }
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+}
 
-        function updateScore() {
-            document.getElementById('score').innerText = "Poäng: " + score;
-        }
+function updateScore(){
+    document.getElementById("score").innerText = "Poäng: " + score;
+}
 
-        function spinBottle() {
-            playClickSound();
+function spinBottle(){
+    playClickSound();
+    score += spinSpeed;
+    updateScore();
 
-            score += spinSpeed;
-            updateScore();
+    document.getElementById("bottle").style.transform =
+        "rotate(" + (Math.random()*360) + "deg)";
+}
 
-            const bottle = document.getElementById('bottle');
-            bottle.style.transform = "rotate(" + (Math.random() * 360) + "deg)";
-        }
+// 🚀 Upgrade
+function buyUpgrade(cost, power){
+    if(score >= cost){
+        score -= cost;
+        spinSpeed += power;
+        updateScore();
+    }
+}
 
-        function buyUpgrade1() {
-            if (score >= 10) {
-                score -= 10;
-                spinSpeed += 1;
-                updateScore();
+// 🎨 Skin system
+function updateSkin(){
+    const bottle = document.getElementById("bottle");
+
+    bottle.style.boxShadow = "0 0 20px white";
+
+    if(currentSkin === "green"){
+        bottle.style.background = "green";
+        bottle.style.boxShadow = "0 0 20px green";
+    }
+    else if(currentSkin === "pink"){
+        bottle.style.background = "pink";
+        bottle.style.boxShadow = "0 0 20px pink";
+    }
+    else if(currentSkin === "black"){
+        bottle.style.background = "black";
+        bottle.style.boxShadow = "0 0 20px white";
+    }
+    else{
+        bottle.style.background = "#ffcc00";
+    }
+
+    updateButtons();
+}
+
+function updateButtons(){
+    const skins = ["green","pink","black"];
+
+    skins.forEach(skin => {
+        let btn = document.getElementById(skin+"Btn");
+
+        if(ownedSkins.includes(skin)){
+            if(currentSkin === skin){
+                btn.innerText = skin + " (Equipped)";
+            } else {
+                btn.innerText = skin + " (Owned)";
             }
         }
+    });
+}
 
-        function buyUpgrade2() {
-            if (score >= 20) {
-                score -= 20;
-                spinSpeed += 5;
-                updateScore();
-            }
-        }
+function buySkin(color, cost){
+    if(ownedSkins.includes(color)){
+        currentSkin = color;
+        updateSkin();
+        return;
+    }
 
-        function buyUpgrade3() {
-            if (score >= 50) {
-                score -= 50;
-                spinSpeed += 15;
-                updateScore();
-            }
-        }
+    if(score >= cost){
+        score -= cost;
+        ownedSkins.push(color);
+        currentSkin = color;
+        updateScore();
+        updateSkin();
+    } else {
+        alert("Inte tillräckligt med poäng!");
+    }
+}
 
-        function buyUpgrade4() {
-            if (score >= 100) {
-                score -= 100;
-                spinSpeed += 25;
-                updateScore();
-            }
-        }
+// 💾 Save / Load
+function saveGame(){
+    localStorage.setItem("score", score);
+    localStorage.setItem("speed", spinSpeed);
+    localStorage.setItem("skin", currentSkin);
+    localStorage.setItem("owned", JSON.stringify(ownedSkins));
+    alert("Sparat!");
+}
 
-        function buyUpgrade5() {
-            if (score >= 200) {
-                score -= 200;
-                spinSpeed += 50;
-                updateScore();
-            }
-        }
+function loadGame(){
+    let s = localStorage.getItem("score");
+    let sp = localStorage.getItem("speed");
+    let sk = localStorage.getItem("skin");
+    let ow = localStorage.getItem("owned");
 
-        // 💾 Spara spelet
-        function saveGame() {
-            localStorage.setItem("score", score);
-            localStorage.setItem("spinSpeed", spinSpeed);
-            alert("Spelet sparat!");
-        }
+    if(s) score = parseInt(s);
+    if(sp) spinSpeed = parseInt(sp);
+    if(sk) currentSkin = sk;
+    if(ow) ownedSkins = JSON.parse(ow);
 
-        // 📂 Ladda spelet när sidan öppnas
-        function loadGame() {
-            const savedScore = localStorage.getItem("score");
-            const savedSpeed = localStorage.getItem("spinSpeed");
+    updateScore();
+    updateSkin();
+}
 
-            if (savedScore !== null) {
-                score = parseInt(savedScore);
-            }
-            if (savedSpeed !== null) {
-                spinSpeed = parseInt(savedSpeed);
-            }
-
-            updateScore();
-        }
-
-        loadGame();
-    </script>
+loadGame();
+</script>
 
 </body>
 </html>
