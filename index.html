@@ -31,120 +31,24 @@
     </style>
 </head>
 <body>
-    <div id="bottle" onclick="spinBottle()"></div>
-    <div id="score">Poäng: 0</div>
-
-    <div id="upgrades">
-        <button onclick="buyUpgrade1()">+1 speed (kostnad: 10)</button>
-        <button onclick="buyUpgrade2()">+5 speed (kostnad: 20)</button>
-        <button onclick="buyUpgrade3()">+15 speed (kostnad: 50)</button>
-    </div>
-
-    <script>
-        let score = 0;
-        let spinSpeed = 1;
-
-        function updateScore() {
-            document.getElementById('score').innerText = "Poäng: " + score;
-        }
-
-        function spinBottle() {
-            score += spinSpeed;
-            updateScore();
-
-            const bottle = document.getElementById('bottle');
-            bottle.style.transform = "rotate(" + (Math.random() * 360) + "deg)";
-        }
-
-        function buyUpgrade1() {
-            if (score >= 10) {
-                score -= 10;
-                spinSpeed += 1;
-                updateScore();
-            } else {
-                alert("Inte tillräckligt med poäng!");
-            }
-        }
-
-        function buyUpgrade2() {
-            if (score >= 20) {
-                score -= 20;
-                spinSpeed += 5;
-                updateScore();
-            } else {
-                alert("Inte tillräckligt med poäng!");
-            }
-        }
-
-        function buyUpgrade3() {
-            if (score >= 50) {
-                score -= 50;
-                spinSpeed += 15;
-                updateScore();
-            } else {
-                alert("Inte tillräckligt med poäng!");
-            }
-        }
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="sv">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flaskspel</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-        }
-        #bottle {
-            width: 100px;
-            height: 200px;
-            background-color: #ffcc00;
-            border-radius: 10px;
-            transition: transform 0.5s;
-        }
-        #upgrades {
-            margin-top: 20px;
-        }
-        button {
-            margin: 5px;
-            padding: 10px;
-        }
-    </style>
-</head>
-<body>
 
     <div id="bottle" onclick="spinBottle()"></div>
     <div id="score">Poäng: 0</div>
 
     <div id="upgrades">
-        <button onclick="buyUpgrade1()">+1 speed (10)</button>
-        <button onclick="buyUpgrade2()">+5 speed (20)</button>
-        <button onclick="buyUpgrade3()">+15 speed (50)</button>
+        <button onclick="buyUpgrade()">Köp uppgradering (kostnad: 10 poäng)</button>
     </div>
 
-    <!-- 🔊 Ljud -->
+    <!-- 🔊 Klickljud -->
     <audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
 
     <script>
         let score = 0;
         let spinSpeed = 1;
 
-        function updateScore() {
-            document.getElementById('score').innerText = "Poäng: " + score;
-        }
-
         function spinBottle() {
             score += spinSpeed;
-            updateScore();
+            document.getElementById('score').innerText = "Poäng: " + score;
 
             // 🔊 Spela ljud
             const sound = document.getElementById("clickSound");
@@ -155,31 +59,11 @@
             bottle.style.transform = "rotate(" + (Math.random() * 360) + "deg)";
         }
 
-        function buyUpgrade1() {
+        function buyUpgrade() {
             if (score >= 10) {
                 score -= 10;
                 spinSpeed += 1;
-                updateScore();
-            } else {
-                alert("Inte tillräckligt med poäng!");
-            }
-        }
-
-        function buyUpgrade2() {
-            if (score >= 20) {
-                score -= 20;
-                spinSpeed += 5;
-                updateScore();
-            } else {
-                alert("Inte tillräckligt med poäng!");
-            }
-        }
-
-        function buyUpgrade3() {
-            if (score >= 50) {
-                score -= 50;
-                spinSpeed += 15;
-                updateScore();
+                document.getElementById('score').innerText = "Poäng: " + score;
             } else {
                 alert("Inte tillräckligt med poäng!");
             }
