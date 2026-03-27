@@ -1,3 +1,61 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flaskspel STABIL+</title>
+
+<style>
+body {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    font-family:Arial;
+    background:linear-gradient(to right,#4facfe,#00f2fe);
+}
+
+#bottle {
+    width:100px;
+    height:200px;
+    border-radius:10px;
+    background:#ffcc00;
+    margin:10px;
+}
+
+.shop {
+    background:rgba(255,255,255,0.2);
+    padding:10px;
+    border-radius:10px;
+    margin:10px;
+}
+
+button {
+    margin:5px;
+    padding:8px;
+}
+
+#inventory {
+    display:flex;
+    flex-wrap:wrap;
+}
+
+.skin {
+    width:40px;
+    height:60px;
+    margin:5px;
+    border:2px solid white;
+}
+</style>
+</head>
+
+<body>
+
+<div id="bottle" onclick="spinBottle()"></div>
+
+<div id="score">Poäng: 0</div>
+<div id="stats">Auto/sec: 0</div>
+
+<!-- 🚀 UPGRADES -->
 <div class="shop">
 <h3>🚀 Upgrades</h3>
 
@@ -11,9 +69,158 @@
 
 <h3>🤖 Auto</h3>
 
-<button onclick="buyAuto(1000,1)">+1/sec (1k)</button>
-<button onclick="buyAuto(5000,5)">+5/sec (5k)</button>
-<button onclick="buyAuto(20000,20)">+20/sec (20k)</button>
-<button onclick="buyAuto(100000,100)">+100/sec (100k)</button>
+<button onclick="buyAuto(1000,1)">+1/sec</button>
+<button onclick="buyAuto(5000,5)">+5/sec</button>
+<button onclick="buyAuto(20000,20)">+20/sec</button>
+<button onclick="buyAuto(100000,100)">+100/sec</button>
 
 </div>
+
+<!-- 🎁 CASE -->
+<div class="shop">
+<h3>🎁 Case</h3>
+<button onclick="openCase()">Öppna (67k)</button>
+</div>
+
+<!-- 🎒 INVENTORY -->
+<div class="shop">
+<h3>🎒 Inventory</h3>
+<div id="inventory"></div>
+</div>
+
+<button onclick="saveGame()">💾 Spara</button>
+
+<script>
+let score=0;
+let spinSpeed=1;
+let autoSpeed=0;
+let currentSkin="yellow";
+let ownedSkins=["yellow"];
+
+// 🎮 CLICK
+function spinBottle(){
+    score += spinSpeed * getMultiplier();
+    updateUI();
+}
+
+// 🤖 AUTO
+setInterval(()=>{
+    score += autoSpeed * getMultiplier();
+    updateUI();
+},1000);
+
+// ⭐ multiplier
+function getMultiplier(){
+    if(currentSkin==="gold") return 5;
+    if(currentSkin==="whiteGlow") return 3;
+    if(currentSkin!=="yellow") return 2;
+    return 1;
+}
+
+// 🚀 upgrades
+function buyUpgrade(cost,power){
+    if(score>=cost){
+        score-=cost;
+        spinSpeed+=power;
+        updateUI();
+    }
+}
+
+// 🤖 auto
+function buyAuto(cost,amount){
+    if(score>=cost){
+        score-=cost;
+        autoSpeed+=amount;
+        updateUI();
+    }
+}
+
+// 🎁 case
+function openCase(){
+    if(score<67000) return;
+
+    score-=67000;
+
+    const skins=["red","blue","whiteGlow","gold"];
+    let reward=skins[Math.floor(Math.random()*skins.length)];
+
+    if(!ownedSkins.includes(reward)){
+        ownedSkins.push(reward);
+    }
+
+    currentSkin=reward;
+    applySkin(reward);
+
+    renderInventory();
+    updateUI();
+}
+
+// 🎨 skin
+function applySkin(skin){
+    const b=document.getElementById("bottle");
+    b.style.boxShadow="none";
+
+    if(skin==="gold"){
+        b.style.background="gold";
+        b.style.boxShadow="0 0 20px gold";
+    }
+    else if(skin==="whiteGlow"){
+        b.style.background="white";
+        b.style.boxShadow="0 0 20px white";
+    }
+    else{
+        b.style.background=skin;
+    }
+}
+
+// 🎒 inventory
+function renderInventory(){
+    const inv=document.getElementById("inventory");
+    inv.innerHTML="";
+
+    ownedSkins.forEach(skin=>{
+        let div=document.createElement("div");
+        div.className="skin";
+        div.style.background=skin;
+
+        div.onclick=()=>{
+            currentSkin=skin;
+            applySkin(skin);
+        };
+
+        inv.appendChild(div);
+    });
+}
+
+// UI
+function updateUI(){
+    document.getElementById("score").innerText="Poäng: "+score;
+    document.getElementById("stats").innerText="Auto/sec: "+autoSpeed;
+}
+
+// 💾 save/load
+function saveGame(){
+    localStorage.setItem("score",score);
+    localStorage.setItem("speed",spinSpeed);
+    localStorage.setItem("auto",autoSpeed);
+    localStorage.setItem("skins",JSON.stringify(ownedSkins));
+    localStorage.setItem("current",currentSkin);
+}
+
+function loadGame(){
+    score=parseInt(localStorage.getItem("score"))||0;
+    spinSpeed=parseInt(localStorage.getItem("speed"))||1;
+    autoSpeed=parseInt(localStorage.getItem("auto"))||0;
+    ownedSkins=JSON.parse(localStorage.getItem("skins"))||["yellow"];
+    currentSkin=localStorage.getItem("current")||"yellow";
+
+    applySkin(currentSkin);
+    renderInventory();
+    updateUI();
+}
+
+loadGame();
+</script>
+
+</body>
+</html>
