@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flaskspel GOD MODE</title>
+<title>Flaskspel GOD+</title>
 
 <style>
 body {
@@ -21,10 +21,9 @@ body {
     height:200px;
     border-radius:10px;
     background:#ffcc00;
-    transition:0.2s;
 }
 
-#score, #stats {
+#score,#stats,#level {
     color:white;
     font-size:20px;
     margin:5px;
@@ -35,14 +34,13 @@ button {
     margin:5px;
     border:none;
     border-radius:8px;
-    cursor:pointer;
 }
 
 .shop {
-    margin-top:10px;
     background:rgba(255,255,255,0.2);
     padding:10px;
     border-radius:10px;
+    margin-top:10px;
 }
 </style>
 </head>
@@ -51,199 +49,174 @@ button {
 
 <div id="bottle" onclick="spinBottle()"></div>
 <div id="score">Poäng: 0</div>
-<div id="stats">Clicks/sec: 0</div>
+<div id="stats">Auto/sec: 0</div>
+<div id="level">Level: 1</div>
 
-<!-- 🚀 UPGRADES -->
+<!-- 🚀 -->
 <div class="shop">
 <h3>🚀 Upgrades</h3>
-<button onclick="buyUpgrade(10,1)">+1 (10)</button>
-<button onclick="buyUpgrade(50,15)">+15 (50)</button>
-<button onclick="buyUpgrade(200,50)">+50 (200)</button>
-<button onclick="buyUpgrade(500,100)">+100 (500)</button>
-<button onclick="buyUpgrade(2000,500)">+500 (2000)</button>
-<button onclick="buyAuto()">🤖 Auto +10/sec (1000)</button>
+<button onclick="buyUpgrade(10,1)">+1</button>
+<button onclick="buyUpgrade(200,50)">+50</button>
+<button onclick="buyUpgrade(2000,500)">+500</button>
+<button onclick="buyAuto()">🤖 Auto (50M)</button>
 </div>
 
-<!-- 🎨 SHOP -->
+<!-- 🎁 -->
 <div class="shop">
-<h3>🎨 Shop</h3>
-<button onclick="buySkin('green',15000)">Grön</button>
-<button onclick="buySkin('pink',20000)">Rosa</button>
-<button onclick="buySkin('black',25000)">Svart</button>
-<button onclick="buySkin('orange',30000)">Orange</button>
+<h3>🎁 Case</h3>
+<button onclick="openCase(67000)">Case</button>
 </div>
 
-<button onclick="dailyReward()">🎁 Daily Reward</button>
-<button onclick="saveGame()">💾 Spara</button>
+<!-- ⚔️ -->
+<div class="shop">
+<h3>⚔️ Boss</h3>
+<button onclick="fightBoss()">Fight Boss</button>
+</div>
+
+<!-- 💰 -->
+<div class="shop">
+<h3>💰 Sell skins</h3>
+<button onclick="sellSkins()">Sälj alla skins</button>
+</div>
+
+<button onclick="saveGame()">💾 Save</button>
 
 <script>
-let score = 0;
-let spinSpeed = 1;
-let autoSpeed = 0;
-let currentSkin = "yellow";
-let ownedSkins = ["yellow"];
-let achievements = [];
+let score=0;
+let spinSpeed=1;
+let autoSpeed=0;
+let level=1;
+let currentSkin="yellow";
+let ownedSkins=["yellow"];
 
-// 🔊 ljud
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function clickSound(){
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.frequency.value = 600;
-    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.1);
-    osc.start();
-    osc.stop(audioCtx.currentTime+0.1);
-}
-
-function updateUI(){
-    document.getElementById("score").innerText = "Poäng: " + score;
-    document.getElementById("stats").innerText = "Clicks/sec: " + autoSpeed;
-}
-
-// 🎮 CLICK + CRITICAL
+// 🎮 CLICK
 function spinBottle(){
-    clickSound();
-
-    let multiplier = currentSkin !== "yellow" ? 2 : 1;
-
-    // 💥 critical hit
-    let crit = Math.random() < 0.1 ? 5 : 1;
-
-    if(crit > 1){
-        alert("💥 CRITICAL HIT x5!");
-    }
-
-    score += spinSpeed * multiplier * crit;
-
+    let mult = getMultiplier();
+    score += spinSpeed * mult;
+    levelUp();
     updateUI();
-
-    document.getElementById("bottle").style.transform =
-        "rotate("+(Math.random()*360)+"deg)";
-
-    checkAchievements();
 }
 
 // 🤖 AUTO
 setInterval(()=>{
-    let multiplier = currentSkin !== "yellow" ? 2 : 1;
-    score += autoSpeed * multiplier;
+    score += autoSpeed * getMultiplier();
+    levelUp();
     updateUI();
 },1000);
+
+// ⭐ multipliers
+function getMultiplier(){
+    if(currentSkin==="gold") return 5;
+    if(currentSkin==="whiteGlow") return 3;
+    if(currentSkin!=="yellow") return 2;
+    return 1;
+}
 
 // 🚀 upgrades
 function buyUpgrade(cost,power){
     if(score>=cost){
         score-=cost;
         spinSpeed+=power;
-        updateUI();
     }
 }
 
-// 🤖 auto upgrade
+// 🤖 auto
 function buyAuto(){
-    if(score>=1000){
-        score-=1000;
+    if(score>=50000000){
+        score-=50000000;
         autoSpeed+=10;
-        updateUI();
     }
 }
 
-// 🎨 skins
+// 🎰 case
+function openCase(cost){
+    if(score<cost)return;
+
+    score-=cost;
+
+    const skins=["red","blue","whiteGlow","gold"];
+    let reward=skins[Math.floor(Math.random()*skins.length)];
+
+    if(!ownedSkins.includes(reward)){
+        ownedSkins.push(reward);
+    }
+
+    currentSkin=reward;
+    applySkin(reward);
+
+    alert("Fick: "+reward);
+}
+
+// 🎨 skin
 function applySkin(skin){
-    const b=document.getElementById("bottle");
-    b.style.boxShadow="none";
+    let b=document.getElementById("bottle");
 
-    if(skin==="green") b.style.background="green";
-    else if(skin==="pink") b.style.background="pink";
-    else if(skin==="black"){
-        b.style.background="black";
-        b.style.boxShadow="0 0 20px white";
+    if(skin==="gold"){
+        b.style.background="gold";
     }
-    else if(skin==="orange"){
-        b.style.background="orange";
-        b.style.boxShadow="0 0 20px orange";
+    else if(skin==="whiteGlow"){
+        b.style.background="white";
     }
-    else b.style.background="#ffcc00";
-}
-
-// 🛒 köp skin
-function buySkin(color,cost){
-    if(ownedSkins.includes(color)){
-        currentSkin=color;
-        applySkin(color);
-        return;
-    }
-
-    if(score>=cost){
-        score-=cost;
-        ownedSkins.push(color);
-        currentSkin=color;
-        updateUI();
-        applySkin(color);
+    else{
+        b.style.background=skin;
     }
 }
 
-// 🏆 achievements
-function checkAchievements(){
-    if(score>=1000 && !achievements.includes("1000")){
-        achievements.push("1000");
-        alert("🏆 Achievement: 1000 poäng!");
-    }
+// ⚔️ boss
+function fightBoss(){
+    let bossHP = level * 1000;
 
-    if(score>=10000 && !achievements.includes("10000")){
-        achievements.push("10000");
-        alert("🏆 Achievement: 10000 poäng!");
-    }
-}
+    let damage = spinSpeed * getMultiplier();
 
-// 🎁 daily reward
-function dailyReward(){
-    let last = localStorage.getItem("daily");
-
-    let now = Date.now();
-
-    if(!last || now - last > 86400000){
-        score += 5000;
-        localStorage.setItem("daily", now);
-        alert("🎁 Du fick 5000 poäng!");
-        updateUI();
+    if(damage > bossHP){
+        score += bossHP;
+        alert("Boss defeated!");
     } else {
-        alert("Kom tillbaka imorgon!");
+        alert("För svag!");
     }
 }
 
-// 💾 save/load
+// 🌍 level
+function levelUp(){
+    let newLevel = Math.floor(score / 1000) + 1;
+    if(newLevel > level){
+        level = newLevel;
+        alert("LEVEL UP!");
+    }
+}
+
+// 💰 sell skins
+function sellSkins(){
+    let value = ownedSkins.length * 5000;
+    score += value;
+    ownedSkins = ["yellow"];
+    currentSkin="yellow";
+    applySkin("yellow");
+    alert("Sålde skins för "+value);
+}
+
+// UI
+function updateUI(){
+    document.getElementById("score").innerText="Poäng: "+score;
+    document.getElementById("stats").innerText="Auto/sec: "+autoSpeed;
+    document.getElementById("level").innerText="Level: "+level;
+}
+
+// save
 function saveGame(){
     localStorage.setItem("score",score);
     localStorage.setItem("speed",spinSpeed);
     localStorage.setItem("auto",autoSpeed);
-    localStorage.setItem("skin",currentSkin);
-    localStorage.setItem("owned",JSON.stringify(ownedSkins));
-    localStorage.setItem("ach",JSON.stringify(achievements));
-    alert("Sparat!");
+    localStorage.setItem("level",level);
 }
 
+// load
 function loadGame(){
-    let s=localStorage.getItem("score");
-    let sp=localStorage.getItem("speed");
-    let au=localStorage.getItem("auto");
-    let sk=localStorage.getItem("skin");
-    let ow=localStorage.getItem("owned");
-    let ac=localStorage.getItem("ach");
-
-    if(s) score=parseInt(s);
-    if(sp) spinSpeed=parseInt(sp);
-    if(au) autoSpeed=parseInt(au);
-    if(sk) currentSkin=sk;
-    if(ow) ownedSkins=JSON.parse(ow);
-    if(ac) achievements=JSON.parse(ac);
-
+    score=parseInt(localStorage.getItem("score"))||0;
+    spinSpeed=parseInt(localStorage.getItem("speed"))||1;
+    autoSpeed=parseInt(localStorage.getItem("auto"))||0;
+    level=parseInt(localStorage.getItem("level"))||1;
     updateUI();
-    applySkin(currentSkin);
 }
 
 loadGame();
