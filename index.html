@@ -3,84 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flaskspel ULTIMATE</title>
-
+<title>Flaskspel MEGA 100+</title>
 <style>
-body {
-    margin:0;
-    font-family:Arial;
-    text-align:center;
-    background:#222;
-    color:white;
-}
-
-/* MENU */
-#menu {
-    position:fixed;
-    width:100%;
-    height:100%;
-    background:black;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-/* GAME */
-#game {
-    display:none;
-}
-
-#bottle {
-    width:100px;
-    height:200px;
-    margin:20px auto;
-    border-radius:10px;
-    background:gold;
-    transition:0.1s;
-}
-
-.shop, .panel {
-    background:#333;
-    padding:10px;
-    margin:10px;
-    border-radius:10px;
-}
-
-button {
-    padding:10px;
-    margin:5px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-}
-
-#inventory {
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-}
-
-.skin {
-    width:40px;
-    height:60px;
-    margin:5px;
-    border:2px solid white;
-}
-
-.active {
-    border:3px solid red;
-}
+body {margin:0; font-family:Arial; text-align:center; background:#222; color:white;}
+#menu {position:fixed; width:100%; height:100%; background:black; display:flex; justify-content:center; align-items:center;}
+#game {display:none;}
+#bottle {width:100px; height:200px; margin:20px auto; border-radius:10px; background:gold; transition:0.1s;}
+.shop, .panel {background:#333; padding:10px; margin:10px; border-radius:10px;}
+button {padding:10px; margin:5px; border:none; border-radius:8px; cursor:pointer;}
+#inventory {display:flex; flex-wrap:wrap; justify-content:center;}
+.skin {width:40px; height:60px; margin:5px; border:2px solid white; cursor:pointer;}
+.active {border:3px solid red;}
+#stats {margin:10px;}
 </style>
 </head>
-
 <body>
 
-<!-- START MENU -->
 <div id="menu">
     <button onclick="startGame()">▶️ Start Game</button>
 </div>
 
-<!-- GAME -->
 <div id="game">
 
 <div id="bottle" onclick="clickBottle()"></div>
@@ -89,52 +31,66 @@ button {
 <div id="level">Level: 1</div>
 <div id="auto">Auto/sec: 0</div>
 <div id="multi">Multiplier: x1</div>
+<div id="time">Tid: 0s</div>
 
-<!-- SHOP -->
 <div class="shop">
 <h3>🚀 Upgrades</h3>
-<button onclick="buyUpgrade()">Upgrade</button>
+<button onclick="buyUpgrade(50,5)">+5</button>
+<button onclick="buyUpgrade(500,50)">+50</button>
+<button onclick="buyUpgrade(5000,500)">+500</button>
+<button onclick="buyUpgrade(20000,2000)">+2000</button>
+<button onclick="buyUpgrade(100000,10000)">+10000</button>
+<button onclick="buyUpgrade(500000,50000)">+50000</button>
+<button onclick="buyUpgrade(1000000,100000)">+100k</button>
+<button onclick="buyUpgrade(5000000,500000)">+500k</button>
+<button onclick="buyUpgrade(10000000,1000000)">+1M</button>
+<button onclick="buyUpgrade(50000000,5000000)">+5M</button>
 
 <h3>🤖 Auto</h3>
-<button onclick="buyAuto()">Auto</button>
+<button onclick="buyAuto(1000,1)">+1/sec</button>
+<button onclick="buyAuto(5000,5)">+5/sec</button>
+<button onclick="buyAuto(20000,20)">+20/sec</button>
+<button onclick="buyAuto(100000,100)">+100/sec</button>
+<button onclick="buyAuto(500000,500)">+500/sec</button>
+<button onclick="buyAuto(1000000,1000)">+1k/sec</button>
+<button onclick="buyAuto(5000000,5000)">+5k/sec</button>
 </div>
 
-<!-- CASE -->
 <div class="shop">
 <h3>🎁 Case</h3>
 <button onclick="openCase()">Öppna (67k)</button>
 </div>
 
-<!-- INVENTORY -->
 <div class="panel">
 <h3>🎒 Inventory</h3>
 <div id="inventory"></div>
 </div>
 
-<!-- SETTINGS -->
 <div class="panel">
 <button onclick="toggleTheme()">🎨 Theme</button>
 <button onclick="prestige()">💎 Prestige</button>
+<button onclick="triggerBonus()">✨ Slumpmässig x2</button>
 </div>
 
 </div>
 
 <script>
-// GAME DATA
+// DATA
 let score = 0;
 let spin = 1;
 let auto = 0;
 let level = 1;
-
-let upgradeCost = 10;
-let autoCost = 1000;
+let timePlayed = 0;
+let dark = true;
 
 let currentSkin = "gold";
 let ownedSkins = ["gold"];
+let bonusActive = false;
 
-let dark = true;
+// TIMER
+setInterval(()=>{ timePlayed++; document.getElementById("time").innerText="Tid: "+timePlayed+"s"; },1000);
 
-// START GAME
+// START
 function startGame(){
     document.getElementById("menu").style.display="none";
     document.getElementById("game").style.display="block";
@@ -142,21 +98,25 @@ function startGame(){
 
 // CLICK
 function clickBottle(){
-    score += spin * getMultiplier();
-    animate();
+    let gain = spin * getMultiplier();
+    if(bonusActive) gain *= 2;
+    score += gain;
+    animateBottle();
     updateUI();
 }
 
 // ANIMATION
-function animate(){
-    let b = document.getElementById("bottle");
+function animateBottle(){
+    let b=document.getElementById("bottle");
     b.style.transform="scale(1.2)";
     setTimeout(()=>b.style.transform="scale(1)",100);
 }
 
 // AUTO LOOP
 setInterval(()=>{
-    score += auto * getMultiplier();
+    let gain = auto * getMultiplier();
+    if(bonusActive) gain *= 2;
+    score += gain;
     updateUI();
 },1000);
 
@@ -168,44 +128,37 @@ function getMultiplier(){
     return 1;
 }
 
-// BUY UPGRADE
-function buyUpgrade(){
-    if(score >= upgradeCost){
-        score -= upgradeCost;
-        spin += 1;
-        upgradeCost = Math.floor(upgradeCost * 1.5);
+// UPGRADE
+function buyUpgrade(cost,power){
+    if(score >= cost){
+        score -= cost;
+        spin += power;
         updateUI();
     }
 }
 
-// BUY AUTO
-function buyAuto(){
-    if(score >= autoCost){
-        score -= autoCost;
-        auto += 1;
-        autoCost = Math.floor(autoCost * 1.7);
+// AUTO
+function buyAuto(cost,amount){
+    if(score >= cost){
+        score -= cost;
+        auto += amount;
         updateUI();
     }
 }
 
-// CASE SYSTEM
+// CASE
 function openCase(){
     if(score < 67000) return;
-
     score -= 67000;
-
-    let r = Math.random();
+    let r=Math.random();
     let reward;
+    if(r<0.4) reward="red";
+    else if(r<0.7) reward="blue";
+    else if(r<0.9) reward="gold";
+    else if(r<0.97) reward="whiteGlow";
+    else reward="rainbow";
 
-    if(r < 0.5) reward = "red";
-    else if(r < 0.8) reward = "blue";
-    else if(r < 0.95) reward = "gold";
-    else reward = "rainbow";
-
-    if(!ownedSkins.includes(reward)){
-        ownedSkins.push(reward);
-    }
-
+    if(!ownedSkins.includes(reward)) ownedSkins.push(reward);
     currentSkin = reward;
     applySkin();
     renderInventory();
@@ -214,42 +167,29 @@ function openCase(){
 
 // APPLY SKIN
 function applySkin(){
-    let b = document.getElementById("bottle");
-
-    if(currentSkin==="rainbow"){
-        b.style.background="linear-gradient(red,blue)";
-    } else {
-        b.style.background=currentSkin;
-    }
+    let b=document.getElementById("bottle");
+    if(currentSkin==="rainbow") b.style.background="linear-gradient(red,blue)";
+    else if(currentSkin==="whiteGlow") b.style.background="white"; 
+    else b.style.background=currentSkin;
 }
 
 // INVENTORY
 function renderInventory(){
-    let inv = document.getElementById("inventory");
-    inv.innerHTML = "";
-
+    let inv=document.getElementById("inventory");
+    inv.innerHTML="";
     ownedSkins.forEach(skin=>{
-        let div = document.createElement("div");
+        let div=document.createElement("div");
         div.className="skin";
         div.style.background=skin;
-
-        if(skin === currentSkin){
-            div.classList.add("active");
-        }
-
-        div.onclick=()=>{
-            currentSkin = skin;
-            applySkin();
-            renderInventory();
-        };
-
+        if(skin===currentSkin) div.classList.add("active");
+        div.onclick=()=>{ currentSkin=skin; applySkin(); renderInventory(); };
         inv.appendChild(div);
     });
 }
 
 // THEME
 function toggleTheme(){
-    dark = !dark;
+    dark=!dark;
     document.body.style.background = dark ? "#222" : "#eee";
     document.body.style.color = dark ? "white" : "black";
 }
@@ -257,12 +197,16 @@ function toggleTheme(){
 // PRESTIGE
 function prestige(){
     if(score >= 100000){
-        score = 0;
-        spin = 1;
-        auto = 0;
-        level++;
+        score=0; spin=1; auto=0; level++;
         updateUI();
     }
+}
+
+// BONUS EVENT
+function triggerBonus(){
+    bonusActive = true;
+    setTimeout(()=>{bonusActive=false;},10000); // 10 sek x2
+    alert("Bonus x2 aktiverad i 10 sek!");
 }
 
 // UPDATE UI
@@ -270,19 +214,25 @@ function updateUI(){
     document.getElementById("score").innerText="Poäng: "+Math.floor(score);
     document.getElementById("auto").innerText="Auto/sec: "+auto;
     document.getElementById("multi").innerText="Multiplier: x"+getMultiplier();
-
-    level = Math.floor(score / 1000) + 1;
+    level=Math.floor(score/1000)+1;
     document.getElementById("level").innerText="Level: "+level;
 }
 
-// SAVE
+// AUTO SAVE var 3 sec
 setInterval(()=>{
     localStorage.setItem("score",score);
-},5000);
+    localStorage.setItem("spin",spin);
+    localStorage.setItem("auto",auto);
+    localStorage.setItem("skins",JSON.stringify(ownedSkins));
+    localStorage.setItem("currentSkin",currentSkin);
+},3000);
 
 // LOAD
-score = parseInt(localStorage.getItem("score")) || 0;
-
+score = parseInt(localStorage.getItem("score"))||0;
+spin = parseInt(localStorage.getItem("spin"))||1;
+auto = parseInt(localStorage.getItem("auto"))||0;
+ownedSkins = JSON.parse(localStorage.getItem("skins"))||["gold"];
+currentSkin = localStorage.getItem("currentSkin")||"gold";
 applySkin();
 renderInventory();
 updateUI();
