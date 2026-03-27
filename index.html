@@ -2,94 +2,81 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<title>Flaskspel Deluxe</title>
+<title>Flaskspel Ultra Smooth</title>
 
 <style>
 body {
     margin:0;
     font-family:Arial;
     text-align:center;
-    background: linear-gradient(135deg, #1e1e2f, #3a3a6a);
+    background:linear-gradient(135deg,#0f172a,#1e293b);
     color:white;
 }
 
 /* BOTTLE */
 #bottle {
-    width:100px;
-    height:200px;
+    width:110px;
+    height:210px;
     margin:30px auto;
     border-radius:15px;
     background:gold;
+    box-shadow:0 0 25px gold;
     cursor:pointer;
-    box-shadow:0 0 20px gold;
     transition:0.1s;
-}
-
-#bottle:hover {
-    transform:scale(1.1);
 }
 
 /* PANELS */
 .panel {
-    background:rgba(0,0,0,0.4);
-    backdrop-filter: blur(10px);
+    background:rgba(255,255,255,0.05);
     padding:10px;
     margin:10px;
-    border-radius:15px;
+    border-radius:12px;
 }
 
 /* BUTTONS */
 button {
-    margin:5px;
-    padding:8px 12px;
+    margin:4px;
+    padding:6px 10px;
     border:none;
-    border-radius:10px;
+    border-radius:8px;
     cursor:pointer;
-    background:linear-gradient(45deg,#ff7b00,#ffcc00);
+    background:#38bdf8;
     color:black;
     font-weight:bold;
     transition:0.2s;
 }
 
 button:hover {
-    transform:scale(1.1);
+    transform:scale(1.05);
 }
 
-/* SKINS */
+/* SCROLL LISTS */
+.scroll {
+    max-height:150px;
+    overflow-y:auto;
+}
+
+/* INVENTORY */
 .skin {
-    width:40px;
-    height:60px;
-    margin:4px;
+    width:35px;
+    height:50px;
+    margin:3px;
     display:inline-block;
     border:2px solid white;
     border-radius:5px;
     cursor:pointer;
 }
-
-.active {
-    border:3px solid red;
-}
+.active {border:3px solid red;}
 
 /* PROGRESS */
-#progress {
-    height:20px;
-    background:#333;
-    border-radius:10px;
-    overflow:hidden;
-    margin:10px;
-}
-
-#bar {
-    height:100%;
-    width:0%;
-    background:lime;
-}
+#progress {height:15px;background:#222;border-radius:10px;margin:10px;}
+#bar {height:100%;width:0%;background:lime;}
 </style>
 </head>
 
 <body>
 
-<h2>🔥 Flaskspel Deluxe</h2>
+<h2>🔥 Flaskspel Ultra Smooth</h2>
 
 <div id="bottle" onclick="clickBottle()"></div>
 
@@ -99,13 +86,13 @@ button:hover {
 <div id="progress"><div id="bar"></div></div>
 
 <div class="panel">
-<h3>🚀 Upgrades</h3>
-<div id="upgrades"></div>
+<h3>🚀 Upgrades (x4 power)</h3>
+<div id="upgrades" class="scroll"></div>
 </div>
 
 <div class="panel">
-<h3>🤖 Auto</h3>
-<button onclick="buyAuto()">Köp Auto</button>
+<h3>🤖 Auto (20 upgrades)</h3>
+<div id="autos" class="scroll"></div>
 </div>
 
 <div class="panel">
@@ -118,16 +105,6 @@ button:hover {
 <div id="inventory"></div>
 </div>
 
-<div class="panel">
-<button onclick="bonus()">⚡ x2 Bonus</button>
-<button onclick="toggleMusic()">🎵 Musik On/Off</button>
-</div>
-
-<!-- MUSIC -->
-<audio id="bgMusic" loop>
-  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_6b8f3f6d0b.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
-</audio>
-
 <script>
 
 // DATA
@@ -135,18 +112,26 @@ let score=0;
 let clickPower=1;
 let auto=0;
 let level=1;
-let musicOn=false;
 
 let skins=["gold"];
 let current="gold";
 
 let upgrades=[];
+let autos=[];
 
-// GENERATE 50 upgrades
+// GENERATE 50 upgrades (x4 power)
 for(let i=1;i<=50;i++){
     upgrades.push({
-        cost:i*50,
-        power:i
+        cost:i*100,
+        power:i*4   // 🔥 x4 power
+    });
+}
+
+// GENERATE 20 auto upgrades
+for(let i=1;i<=20;i++){
+    autos.push({
+        cost:i*1000,
+        power:i*2
     });
 }
 
@@ -154,37 +139,20 @@ for(let i=1;i<=50;i++){
 function clickBottle(){
     score += clickPower;
 
-    // animation
     let b=document.getElementById("bottle");
-    b.style.transform="scale(1.2)";
-    setTimeout(()=>b.style.transform="scale(1)",100);
+    b.style.transform="scale(1.1)";
+    setTimeout(()=>b.style.transform="scale(1)",80);
 
     update();
 }
 
-// AUTO
+// AUTO LOOP (optimerad)
 setInterval(()=>{
     score += auto;
     update();
 },1000);
 
-// BONUS
-function bonus(){
-    let old=clickPower;
-    clickPower*=2;
-    setTimeout(()=>clickPower=old,10000);
-}
-
-// AUTO BUY
-function buyAuto(){
-    let cost=1000+auto*500;
-    if(score>=cost){
-        score-=cost;
-        auto+=1;
-    }
-}
-
-// UPGRADES
+// RENDER UPGRADES
 function renderUpgrades(){
     let div=document.getElementById("upgrades");
     div.innerHTML="";
@@ -207,13 +175,36 @@ function renderUpgrades(){
     });
 }
 
+// RENDER AUTOS
+function renderAutos(){
+    let div=document.getElementById("autos");
+    div.innerHTML="";
+
+    autos.forEach(a=>{
+        let b=document.createElement("button");
+        b.innerText="+"+a.power+"/s ("+a.cost+")";
+
+        b.onclick=()=>{
+            if(score>=a.cost){
+                score-=a.cost;
+                auto+=a.power;
+                a.cost=Math.floor(a.cost*1.5);
+                renderAutos();
+                update();
+            }
+        };
+
+        div.appendChild(b);
+    });
+}
+
 // CASE
 function openCase(){
     if(score<50000) return;
 
     score-=50000;
 
-    let colors=["red","blue","green","purple","orange","pink"];
+    let colors=["red","blue","green","purple","orange","pink","cyan"];
     let reward=colors[Math.floor(Math.random()*colors.length)];
 
     if(!skins.includes(reward)) skins.push(reward);
@@ -223,11 +214,11 @@ function openCase(){
     renderInventory();
 }
 
-// SKIN
+// APPLY SKIN
 function applySkin(){
     let b=document.getElementById("bottle");
     b.style.background=current;
-    b.style.boxShadow="0 0 20px "+current;
+    b.style.boxShadow="0 0 25px "+current;
 }
 
 // INVENTORY
@@ -252,18 +243,7 @@ function renderInventory(){
     });
 }
 
-// MUSIC
-function toggleMusic(){
-    let music=document.getElementById("bgMusic");
-    if(musicOn){
-        music.pause();
-    } else {
-        music.play();
-    }
-    musicOn=!musicOn;
-}
-
-// UPDATE
+// UPDATE UI
 function update(){
     level=Math.floor(score/1000)+1;
 
@@ -274,10 +254,10 @@ function update(){
     document.getElementById("bar").style.width=percent+"%";
 }
 
-// SAVE
+// SAVE (optimerad)
 setInterval(()=>{
     localStorage.setItem("save",JSON.stringify({
-        score,clickPower,auto,skins,current,upgrades
+        score,clickPower,auto,skins,current,upgrades,autos
     }));
 },3000);
 
@@ -291,11 +271,13 @@ if(save){
     skins=save.skins||["gold"];
     current=save.current||"gold";
     upgrades=save.upgrades||upgrades;
+    autos=save.autos||autos;
 }
 
 applySkin();
 renderInventory();
 renderUpgrades();
+renderAutos();
 update();
 
 </script>
