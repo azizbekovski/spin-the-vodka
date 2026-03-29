@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<title>Flaskspel Animation</title>
+<title>Flaskspel Ultimate</title>
 
 <style>
 body {font-family:Arial;text-align:center;background:#111;color:white;}
@@ -15,19 +15,17 @@ body {font-family:Arial;text-align:center;background:#111;color:white;}
     transition:0.1s;
 }
 
-/* SPIN ANIMATION */
-.spin {
-    animation: spin 0.3s linear infinite;
-}
-
+/* animation */
+.spin {animation:spin 0.3s linear infinite;}
 @keyframes spin {
-    from {transform: rotate(0deg);}
-    to {transform: rotate(360deg);}
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
 }
 
 button {
-    margin:4px;padding:6px;border:none;
-    border-radius:8px;cursor:pointer;
+    margin:4px;padding:6px;
+    border:none;border-radius:8px;
+    cursor:pointer;
 }
 
 .panel {
@@ -45,22 +43,28 @@ button {
 
 <body>
 
-<h2>🔥 Flaskspel ULTRA</h2>
+<h2>🔥 Flaskspel Ultimate</h2>
 
 <div id="bottle" onclick="clickBottle()"></div>
 
 <div id="score"></div>
 
 <div class="panel">
-<h3>🚀 Upgrades</h3>
-<button onclick="buyUpgrade(100,5)">+5</button>
-<button onclick="buyUpgrade(1000,50)">+50</button>
+<h3>🚀 Click Upgrades</h3>
+<button onclick="buyClick(100,2)">+2 (100)</button>
+<button onclick="buyClick(500,5)">+5 (500)</button>
+<button onclick="buyClick(2000,20)">+20 (2k)</button>
+<button onclick="buyClick(10000,100)">+100 (10k)</button>
+<button onclick="buyClick(50000,500)">+500 (50k)</button>
 </div>
 
 <div class="panel">
-<h3>🤖 Auto</h3>
-<button onclick="buyAuto(1000,1)">+1/sec</button>
-<button onclick="buyAuto(10000,10)">+10/sec</button>
+<h3>🤖 Auto Upgrades</h3>
+<button onclick="buyAuto(500,1)">+1/sec (500)</button>
+<button onclick="buyAuto(2000,5)">+5/sec (2k)</button>
+<button onclick="buyAuto(10000,20)">+20/sec (10k)</button>
+<button onclick="buyAuto(50000,100)">+100/sec (50k)</button>
+<button onclick="buyAuto(200000,500)">+500/sec (200k)</button>
 </div>
 
 <div class="panel">
@@ -74,7 +78,7 @@ button {
 <div id="inventory"></div>
 </div>
 
-<!-- 🔊 LJUD -->
+<!-- LJUD -->
 <audio id="clickSound">
 <source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_1b5b0f84e7.mp3">
 </audio>
@@ -97,12 +101,10 @@ let current="gold";
 function clickBottle(){
     score += clickPower;
 
-    // animation
     let b=document.getElementById("bottle");
     b.style.transform="scale(1.1)";
     setTimeout(()=>b.style.transform="scale(1)",80);
 
-    // sound
     document.getElementById("clickSound").play();
 
     update();
@@ -114,8 +116,8 @@ setInterval(()=>{
     update();
 },1000);
 
-// UPGRADES
-function buyUpgrade(cost,power){
+// CLICK UPGRADES
+function buyClick(cost,power){
     if(score>=cost){
         score-=cost;
         clickPower+=power;
@@ -123,51 +125,38 @@ function buyUpgrade(cost,power){
     }
 }
 
-// AUTO BUY
-function buyAuto(cost,amount){
+// AUTO UPGRADES
+function buyAuto(cost,power){
     if(score>=cost){
         score-=cost;
-        auto+=amount;
+        auto+=power;
         update();
     }
 }
 
-// 🎁 BASIC CASE
+// CASES
 function openBasicCase(){
-    if(score<10000){
-        alert("Inte tillräckligt!");
-        return;
-    }
-
+    if(score<10000){alert("Inte tillräckligt!");return;}
     score-=10000;
     animateCase(["red","blue","green","yellow","orange"]);
 }
 
-// 💎 PRO CASE
 function openProCase(){
-    if(score<50000){
-        alert("Inte tillräckligt!");
-        return;
-    }
-
+    if(score<50000){alert("Inte tillräckligt!");return;}
     score-=50000;
     animateCase(["purple","pink","cyan","lime","white","gold"]);
 }
 
-// 🎰 CASE ANIMATION (fixad)
+// ANIMATION
 function animateCase(colors){
-
     let b=document.getElementById("bottle");
-
-    // start spin
     b.classList.add("spin");
 
     document.getElementById("caseSound").play();
 
-    let duration=1500;
     let interval=setInterval(()=>{
-        let random=colors[Math.floor(Math.random()*colors.length)];
-        b.style.background=random;
+        let c=colors[Math.floor(Math.random()*colors.length)];
+        b.style.background=c;
     },100);
 
     setTimeout(()=>{
@@ -175,26 +164,22 @@ function animateCase(colors){
         b.classList.remove("spin");
 
         let reward=colors[Math.floor(Math.random()*colors.length)];
-
         addSkin(reward);
-
-    },duration);
+    },1500);
 }
 
-// ADD SKIN
+// SKINS
 function addSkin(color){
     if(!skins.includes(color)){
         skins.push(color);
     }
 
     current=color;
-
     applySkin();
     renderInventory();
-    update();
 }
 
-// APPLY SKIN
+// APPLY
 function applySkin(){
     let b=document.getElementById("bottle");
     b.style.background=current;
